@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My PT Exercises</title>
+<style>
+  :root {
+    --bg: #f5f5f0;
+    --card-bg: #fff;
+    --text: #2d2d2d;
+    --text-light: #666;
+    --accent: #4a7c6f;
+    --accent-light: #e8f0ed;
+    --border: #e0ddd5;
+    --tag-bg: #f0ede5;
+    --tag-active: #4a7c6f;
+    --tag-active-text: #fff;
+    --session1: #5b7fa5;
+    --session2: #8b6fa5;
+    --category-bg: #fafaf7;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+  }
+
+  header {
+    background: #fff;
+    border-bottom: 1px solid var(--border);
+    padding: 1.5rem 2rem;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+
+  header h1 {
+    font-size: 1.4rem;
+    font-weight: 600;
+    margin-bottom: 0.2rem;
+  }
+
+  header p {
+    font-size: 0.85rem;
+    color: var(--text-light);
+  }
+
+  .filters {
+    background: #fff;
+    border-bottom: 1px solid var(--border);
+    padding: 1rem 2rem;
+    position: sticky;
+    top: 72px;
+    z-index: 99;
+  }
+
+  .filter-group {
+    margin-bottom: 0.75rem;
+  }
+
+  .filter-group:last-child { margin-bottom: 0; }
+
+  .filter-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-light);
+    margin-bottom: 0.4rem;
+    font-weight: 600;
+  }
+
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+
+  .tag {
+    display: inline-block;
+    padding: 0.3rem 0.7rem;
+    font-size: 0.78rem;
+    border-radius: 100px;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: var(--tag-bg);
+    color: var(--text);
+    transition: all 0.15s ease;
+    user-select: none;
+    white-space: nowrap;
+  }
+
+  .tag:hover {
+    border-color: var(--accent);
+    background: var(--accent-light);
+  }
+
+  .tag.active {
+    background: var(--tag-active);
+    color: var(--tag-active-text);
+    border-color: var(--tag-active);
+  }
+
+  .tag.session-tag.s1 { border-left: 3px solid var(--session1); }
+  .tag.session-tag.s2 { border-left: 3px solid var(--session2); }
+  .tag.session-tag.s1.active { background: var(--session1); border-color: var(--session1); }
+  .tag.session-tag.s2.active { background: var(--session2); border-color: var(--session2); }
+
+  .exercise-name-tags {
+    max-height: 120px;
+    overflow-y: auto;
+  }
+
+  .clear-filters {
+    font-size: 0.75rem;
+    color: var(--accent);
+    cursor: pointer;
+    border: none;
+    background: none;
+    text-decoration: underline;
+    margin-left: 0.5rem;
+    display: none;
+  }
+
+  .clear-filters.visible { display: inline; }
+
+  .counter {
+    font-size: 0.8rem;
+    color: var(--text-light);
+    padding: 0.75rem 2rem 0.25rem;
+  }
+
+  main {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 1rem 1rem 3rem;
+  }
+
+  .category-section {
+    margin-bottom: 1.5rem;
+  }
+
+  .category-header {
+    font-size: 1rem;
+    font-weight: 600;
+    padding: 0.6rem 1rem;
+    background: var(--category-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px 8px 0 0;
+    border-bottom: none;
+  }
+
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 0;
+    padding: 1rem 1.2rem;
+    transition: box-shadow 0.15s;
+  }
+
+  .card:last-child { border-radius: 0 0 8px 8px; }
+  .card:only-child { border-radius: 0 0 8px 8px; }
+
+  .card + .card { border-top: none; }
+
+  .card.highlight {
+    background: var(--accent-light);
+  }
+
+  .card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.75rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .card-name {
+    font-weight: 600;
+    font-size: 0.95rem;
+  }
+
+  .session-badge {
+    font-size: 0.65rem;
+    font-weight: 600;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    flex-shrink: 0;
+    color: #fff;
+  }
+
+  .session-badge.s1 { background: var(--session1); }
+  .session-badge.s2 { background: var(--session2); }
+
+  .card-target {
+    font-size: 0.82rem;
+    color: var(--accent);
+    font-style: italic;
+    margin-bottom: 0.5rem;
+  }
+
+  .card-details {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+    font-size: 0.82rem;
+  }
+
+  @media (max-width: 600px) {
+    .card-details { grid-template-columns: 1fr; }
+    header, .filters { padding-left: 1rem; padding-right: 1rem; }
+  }
+
+  .detail-block label {
+    display: block;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-light);
+    margin-bottom: 0.15rem;
+    font-weight: 600;
+  }
+
+  .detail-block p {
+    font-size: 0.82rem;
+    color: var(--text);
+  }
+
+  .card-links {
+    margin-top: 0.6rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .card-links a {
+    font-size: 0.78rem;
+    color: var(--accent);
+    text-decoration: none;
+    padding: 0.2rem 0.6rem;
+    border: 1px solid var(--accent);
+    border-radius: 4px;
+    transition: all 0.15s;
+  }
+
+  .card-links a:hover {
+    background: var(--accent);
+    color: #fff;
+  }
+
+  .no-results {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--text-light);
+    font-size: 0.95rem;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>My PT Exercise Library</h1>
+  <p>Physical therapy exercises prescribed across sessions</p>
+</header>
+
+<div class="filters">
+  <div class="filter-group">
+    <div class="filter-label">Session <button class="clear-filters" id="clearSession" onclick="clearSessionFilter()">clear</button></div>
+    <div class="tags" id="sessionTags"></div>
+  </div>
+  <div class="filter-group">
+    <div class="filter-label">Exercise / Resource Name <button class="clear-filters" id="clearExercise" onclick="clearExerciseFilter()">clear</button></div>
+    <div class="tags exercise-name-tags" id="exerciseTags"></div>
+  </div>
+</div>
+
+<div class="counter" id="counter"></div>
+
+<main id="main"></main>
+
+<script>
+const exercises = [
+  // Session 1: Neuro, Cranial Nerve, & Face
+  { name:"Trigeminal Nerve Flossing", session:1, category:"Neuro, Cranial Nerve, & Face", target:"Jaw mechanics, chewing muscles, and facial sensory activation.", params:"Tall posture. Perform a chin tuck, then side-bend your neck away from the side you are working on. Open your jaw and slide it down and away from that side. Drop into full neck flexion until tension builds near the jaw/ear.", freq:"5–10 light, small nodding movements. Keep intensity light.", links:[{text:"Watch Video",url:"https://www.youtube.com/watch?v=YaIjkwj-xmg&t=245s"}] },
+  { name:"Trigeminal Eye Massage", session:1, category:"Neuro, Cranial Nerve, & Face", target:"Sensory integration for facial relaxation.", params:"Apply targeted manual massage to the soft tissue areas surrounding your eyes.", freq:"As prescribed by PT", links:[{text:"Watch Video",url:"https://www.youtube.com/watch?v=A-Jv5yNeHGE"}] },
+
+  // Session 1: Vision, Vestibular, & Gaze Control
+  { name:"VOR & VOR Cancellation (Right Horizontal)", session:1, category:"Vision, Vestibular, & Gaze Control", target:"Inner ear (vestibular system) and gaze coordination.", params:"VOR: Lock eyes on a static target while turning head horizontally to the right. VOR Cancellation: Lock eyes on a moving target and rotate head, eyes, and target together to the right. Progression: Can be performed in a head/body side-bent position.", freq:"Close your eyes to safely return to center. Frequency as prescribed by PT.", links:[] },
+  { name:"Brock String Drills", session:1, category:"Vision, Vestibular, & Gaze Control", target:"Visual convergence and binocular coordination.", params:"Focus on checking the intersection strings. Gently bounce the string and incorporate small head turns to engage the visual fields more effectively.", freq:"As prescribed by PT", links:[{text:"Watch Video",url:"https://www.youtube.com/watch?v=EGlCVTdNqfw"}] },
+  { name:"Pencil Push-Ups", session:1, category:"Vision, Vestibular, & Gaze Control", target:"Convergence tracking and eye strain relief.", params:"Focus intensely on a small target (pen/pencil tip or a distinct line on a target card) as you bring it slowly toward your nose. Maintain a single, clear image.", freq:"As prescribed by PT", links:[{text:"Watch Video",url:"https://www.youtube.com/watch?v=iryGopm9kEQ"}] },
+  { name:"Smooth Pursuits, VOR x1, VOR Cx (Truncated)", session:1, category:"Vision, Vestibular, & Gaze Control", target:"Vestibular canal stimulation and balance tracking.", params:"Follow an 8-direction compass pattern. 1) Smooth Pursuits: Head still, eyes track target. 2) VOR x1: Target still, head moves. 3) VOR Cx: Eyes, head, and target move together.", freq:"Only work on these first 3 exercises. Keep duration short. Trial one specific exercise each day, performing it 5x per day. Assess how your symptoms change with each drill.", links:[{text:"Watch Video",url:"https://www.youtube.com/watch?v=lgMwdhE02r4&t=181s"}] },
+  { name:"Saccades", session:1, category:"Vision, Vestibular, & Gaze Control", target:"Rapid visual targeting and eye speed.", params:"Keep head entirely still. Shift eyes between two separate targets as rapidly and accurately as possible. Practice side-to-side, up-and-down, or diagonal patterns.", freq:"As prescribed by PT", links:[{text:"Watch Video",url:"https://www.youtube.com/watch?v=Jze6r0b_aww"}] },
+  { name:"Eye Drills for Neck Pain", session:1, category:"Vision, Vestibular, & Gaze Control", target:"Reflexive neck relaxation via visual system activation.", params:"Set up 3 targets on a wall (one center, two flanking 1–2 feet away). Practice 3 phases with a metronome (60–120 BPM): Eyes-only tracking, Head-only tracking, and combined rapid head/eye turns.", freq:"30 seconds per phase. Total training around 2–5 minutes.", links:[{text:"Watch Video",url:"https://www.youtube.com/watch?v=p8x32GO-sxg"}] },
+
+  // Session 1: Visual Fatigue, Ergonomics, & Software
+  { name:"Computer Vision Syndrome Guide", session:1, category:"Visual Fatigue, Ergonomics, & Software", target:"Ergonomic and eye tracking relief.", params:"Clinical guidelines to mitigate computer screen glare, eye fatigue, and dry eyes.", freq:"Reference as needed", links:[{text:"Download PDF Chart",url:"https://zhealtheducation.com/wp-content/uploads/2024/01/Computer-Vision-Syndrome-2024.pdf"}] },
+  { name:"Combat Visual Fatigue Exercises", session:1, category:"Visual Fatigue, Ergonomics, & Software", target:"Visual performance maintenance.", params:"A suite of 5 targeted neuro-visual mobilization exercises to break up long periods of screen work.", freq:"Perform between long screen intervals", links:[{text:"Read/Watch Guide",url:"https://zhealtheducation.com/blog/5-exercises-to-combat-visual-fatigue-episode-404"}] },
+  { name:"Screen Modifying (f.lux)", session:1, category:"Visual Fatigue, Ergonomics, & Software", target:"Circadian health and blue-light reduction.", params:"Soft software overlay that alters the color temperature of your computer screen based on time of day to prevent eye strain.", freq:"Continuous background application", links:[{text:"Access Software",url:"https://justgetflux.com/"}] },
+
+  // Session 1: Cognitive Coordination & Dual-Tasking
+  { name:"Coordination Chart Training", session:1, category:"Cognitive Coordination & Dual-Tasking", target:"Rapid visual recognition and motor output.", params:"Mount chart at eye level in an athletic stance. If star is right of line: tap right leg; left of line: tap left leg; touching line: tap both. Can advance to sports-specific motor movements.", freq:"Time yourself for 60 seconds per trial. Great for warmups.", links:[{text:"Watch Video",url:"https://www.youtube.com/watch?v=PGDzXkVUepM"},{text:"Download Chart PDF",url:"https://zhealtheducation.com/docs/Hand-Eye-Charts.pdf"}] },
+  { name:"Stroop Chart Drills", session:1, category:"Cognitive Coordination & Dual-Tasking", target:"Executive function, inhibition, and processing speed.", params:"Read aloud the background color of printed text strings rather than reading the word itself (e.g., if the word “BLUE” is printed in red ink, say “Red”).", freq:"As prescribed by PT", links:[] },
+  { name:"Dual-Tasking Exercises", session:1, category:"Cognitive Coordination & Dual-Tasking", target:"Cognitive-motor loading and complex reflex tracking.", params:"Practice executing explicit cognitive reasoning problems (counting backwards, word puzzles) while trying to safely maintain a physical balance or gait rhythm.", freq:"As prescribed by PT", links:[{text:"Watch Intro Video",url:"https://www.youtube.com/watch?v=s7Q77pr_WJs"},{text:"Watch Motor Drill",url:"https://www.youtube.com/watch?v=nFHpMB-oYvY"}] },
+  { name:"Infinity Walk (Vols 1 & 2)", session:1, category:"Cognitive Coordination & Dual-Tasking", target:"Spatial orientation and multi-tasking tracking.", params:"Walk in a continuous, flowing figure-8 pattern around two distinct floor markers while keeping your head turned toward a central visual target or executing cognitive tasks.", freq:"As prescribed by PT", links:[{text:"Watch Vol 1",url:"https://www.youtube.com/watch?v=8Gg2y-rBNT4"},{text:"Watch Vol 2",url:"https://www.youtube.com/watch?v=OFcJ9ccgHU4"}] },
+
+  // Session 1: Spine, Neck Motor Control, & Extremity Mobility
+  { name:"Head Laser Coordination", session:1, category:"Spine, Neck Motor Control, & Extremity Mobility", target:"Neck motor control and precision.", params:"Strap on your head laser. Print out online mazes and use the laser point to trace through them to build precision neck motor control.", freq:"Trace for 2–3 minutes at a time.", links:[{text:"Head Laser Tool",url:"https://a.co/d/1HZ1b7z"}] },
+  { name:"9-Point Grid Target Drill", session:1, category:"Spine, Neck Motor Control, & Extremity Mobility", target:"Proprioception & cervical awareness.", params:"Arrange post-it notes on a wall in a 3x3 (9-point) grid pattern. Practice shifting your head to locate designated targets first with eyes open, then with eyes closed.", freq:"Practice for 1–2 minutes at a time.", links:[] },
+  { name:"Deep Neck Flexor Level 1", session:1, category:"Spine, Neck Motor Control, & Extremity Mobility", target:"Deep cervical stability & motor control.", params:"Lie on your back (supine position). Perform a small, isolated chin tuck. Do not let any movement take place in your mid-back or chest.", freq:"Hold 10 sec → repeat x8 → rest 20 sec → repeat x6 → rest 20 sec → repeat x4 → rest 20 sec → repeat x2. Do 2x per day.", links:[{text:"Watch Video",url:"https://www.youtube.com/watch?v=y4YTIhSBtxc"}] },
+  { name:"Upper Cervical Rotation SNAG", session:1, category:"Spine, Neck Motor Control, & Extremity Mobility", target:"C1-C2 segmental rotation mobility.", params:"Isolate a localized mechanical strap glide specifically targeting the uppermost segments of your cervical spine during rotation.", freq:"As prescribed by PT", links:[{text:"Watch Video",url:"https://www.youtube.com/watch?v=shsPWIwTT5M"}] },
+  { name:"Cervical ROM and Glides", session:1, category:"Spine, Neck Motor Control, & Extremity Mobility", target:"Segmental neck mobilization.", params:"Move smoothly through your basic ranges of motion. Translate the head straight forward/backward (retraction/protraction) and side-to-side without tilting your ears.", freq:"As prescribed by PT", links:[{text:"Watch Video",url:"https://www.youtube.com/watch?v=XDh3sem_5QE&t=282s"}] },
+  { name:"3-Plane Cervical Circles", session:1, category:"Spine, Neck Motor Control, & Extremity Mobility", target:"Full-range neck mobility.", params:"Isolate smooth, slow, controlled circular paths of the neck across all three geometric planes of motion (sagittal, frontal, transverse).", freq:"As prescribed by PT", links:[{text:"Watch Video",url:"https://youtu.be/A7bWXSZxVaA"}] },
+  { name:"Double Ball Suboccipitals", session:1, category:"Spine, Neck Motor Control, & Extremity Mobility", target:"Suboccipital release & tension relief.", params:"Place a double lacrosse ball suboccipital release tool right at the base of your skull to roll out tight, restricted suboccipital muscles.", freq:"As prescribed by PT", links:[{text:"Watch Video",url:"https://www.youtube.com/watch?v=gdqHjnHTXe0"},{text:"DaVinci Neck Tool",url:"https://a.co/d/6ZYgVYj"}] },
+  { name:"Thumb Circles", session:1, category:"Spine, Neck Motor Control, & Extremity Mobility", target:"Distal upper extremity control.", params:"Isolate the base joint of the thumb, making smooth, highly controlled rotations in both directions. Perform on both hands.", freq:"As prescribed by PT", links:[] },
+  { name:"Lumbar Lateral Flexion Isometric", session:1, category:"Spine, Neck Motor Control, & Extremity Mobility", target:"Side-core and lower-back stability.", params:"Engage your side-bending core musculature in a static hold against an external resistance while stabilizing your upper extremities.", freq:"As prescribed by PT", links:[{text:"Watch Video",url:"https://www.youtube.com/watch?v=wpcC8lZ2Eb4"}] },
+
+  // Session 1: Educational Videos & Concussion Management
+  { name:"What is a Concussion", session:1, category:"Educational Videos & Concussion Management", target:"Concussion pathology education.", params:"Explains the underlying physiological mechanisms and neuro-metabolic changes that occur during a concussion event.", freq:"Educational review", links:[{text:"Watch Video",url:"https://www.youtube.com/watch?v=GZcl1dk78fY"}] },
+  { name:"Understanding Pain in 30 Minutes", session:1, category:"Educational Videos & Concussion Management", target:"Pain neurology.", params:"A Z-Health presentation detailing how the brain processes threat, maps safety, and produces chronic or acute pain outputs.", freq:"Educational review", links:[{text:"Watch Video",url:"https://www.youtube.com/watch?v=4ltCi_5mbR0"}] },
+  { name:"Vision, Vestibular, Proprioception", session:1, category:"Educational Videos & Concussion Management", target:"The 3 balance pillars.", params:"Breaks down how your visual tracking, inner ear canals, and joint mechanoreceptors must talk to each other to lower structural threat.", freq:"Educational review", links:[{text:"Watch Video",url:"https://www.youtube.com/watch?v=s-2ctfkrxdU&feature=emb_imp_woyt"}] },
+  { name:"Cardio and Concussion", session:1, category:"Educational Videos & Concussion Management", target:"Sub-symptom threshold aerobic training.", params:"Discusses how controlled cardio exercise safely alters cerebral blood flow to assist autonomic recovery after a concussion.", freq:"Educational review", links:[{text:"Watch Video",url:"https://www.youtube.com/watch?v=pHb674ZZiQo"}] },
+  { name:"4 Components of Concussion Rehab", session:1, category:"Educational Videos & Concussion Management", target:"Full-spectrum recovery outline.", params:"Outlines the primary target disciplines (vestibular, vision, autonomic/cardio, and cervical spine) needed for a complete recovery.", freq:"Educational review", links:[{text:"Watch Video",url:"https://www.youtube.com/watch?v=boZVb3U3R0w"}] },
+
+  // Session 2: Vestibular & Face
+  { name:"VORx1 (Vestibular Ocular Reflex)", session:2, category:"Vestibular & Face", target:"Vestibular system & gaze stability.", params:"Keep eyes locked on a post-it letter or chart while moving your head. Start with turns/nods, progress to diagonals. Use a metronome to track consistency.", freq:"20–30 seconds per direction. Repeat 5x per day.", links:[{text:"VOR Chart PDF",url:"http://zhealtheducation.com/docs/VOR_Chart.pdf"}] },
+  { name:"Facial Sensation to Change Move", session:2, category:"Vestibular & Face", target:"Motor control via sensory input.", params:"Target sensory input on the face to alter and improve movement mechanics.", freq:"As prescribed by PT", links:[{text:"Watch Video",url:"https://youtu.be/7vAw90dzGv4"}] },
+  { name:"Monkey Face", session:2, category:"Vestibular & Face", target:"Facial & jaw coordination.", params:"Specific expansion movements targeting coordination.", freq:"As prescribed by PT", links:[{text:"Watch Video",url:"https://www.youtube.com/watch?v=11V7HpKZNic"}] },
+  { name:"TMJ Intro Part 1", session:2, category:"Vestibular & Face", target:"Jaw joint mechanics.", params:"Focus on moving the jaw symmetrically and isolating smooth jaw glides.", freq:"As prescribed by PT", links:[{text:"Read/Watch Guide",url:"https://zhealtheducation.com/blog/episode-278-tmj-jaw-health-for-overall-health-part-1/"}] },
+  { name:"Tongue Circles", session:2, category:"Vestibular & Face", target:"Deep neck flexor & oral motor control.", params:"Actively trace continuous circles with your tongue inside the mouth.", freq:"As prescribed by PT", links:[{text:"Watch Video",url:"https://www.youtube.com/watch?v=5-vhlJzXx4o"}] },
+  { name:"Finger Tapping", session:2, category:"Vestibular & Face", target:"Multi-limb brain coordination.", params:"R hand starts thumb-to-index; L hand starts thumb-to-pinky. Move thumbs simultaneously across fingers.", freq:"Repeat 3–5 times.", links:[] },
+
+  // Session 2: Neck & Upper Body Mobility
+  { name:"Cervical Rotation SNAG", session:2, category:"Neck & Upper Body Mobility", target:"Cervical spine rotation.", params:"Use a Mulligan strap, necktie, or pillowcase edge to assist rotation smoothly.", freq:"20 reps each side (Mid and Lower neck).", links:[{text:"Watch Video",url:"https://www.youtube.com/watch?v=bnQ3KZ6bu5k"}] },
+  { name:"Cervical Extension SNAG", session:2, category:"Neck & Upper Body Mobility", target:"Painless neck extension.", params:"Use your strap or cloth edge to guide a comfortable, smooth upward extension.", freq:"As prescribed by PT", links:[{text:"Watch Video",url:"https://www.youtube.com/watch?v=YVOnu737ZBg"}] },
+  { name:"Cervical ROM & Glides", session:2, category:"Neck & Upper Body Mobility", target:"Neck translational movement.", params:"Isolate explicit translational glides (forward, backward, side-to-side).", freq:"As prescribed by PT", links:[{text:"Watch Video",url:"https://www.youtube.com/watch?v=XDh3sem_5QE&t=282s"}] },
+  { name:"Cervical Lateral Flexion Isometric", session:2, category:"Neck & Upper Body Mobility", target:"Side-bending neck stability.", params:"Provide gentle hand resistance against side-bending without letting the head move.", freq:"As prescribed by PT", links:[{text:"Watch Video",url:"https://www.youtube.com/watch?v=hhDh2Zy6IwM"}] },
+  { name:"Scapular Circles / Camshaft", session:2, category:"Neck & Upper Body Mobility", target:"Shoulder blade mobility.", params:"Isolate pure elevation, retraction, depression, and protraction in tandem with neck moves.", freq:"As prescribed by PT", links:[{text:"Watch Video (Basic)",url:"https://www.youtube.com/watch?v=FdIbpsgxGuk"},{text:"Watch Alternative",url:"https://www.youtube.com/watch?v=knwyGBSfFAc"}] },
+  { name:"Open Book", session:2, category:"Neck & Upper Body Mobility", target:"Thoracic spine opening.", params:"Lie on your side and open your upper trunk and chest away from your knees.", freq:"20 repetitions per side.", links:[{text:"Watch Video",url:"https://www.mytpi.com/exercises#open-books"}] },
+  { name:"90/90 Trunk Rotation", session:2, category:"Neck & Upper Body Mobility", target:"Spinal mobility with stability.", params:"Rotate your core while consciously grounding your shoulder blades.", freq:"20 repetitions.", links:[{text:"Watch Video",url:"https://www.youtube.com/watch?v=mK9VVtI6UDY"}] },
+
+  // Session 2: Release, Nerve, & Shoulder Strength
+  { name:"Musculocutaneous Nerve Tension", session:2, category:"Release, Nerve, & Shoulder Strength", target:"Arm nerve mobility.", params:"Perform a gentle arm/neck stretch. Do not exceed a 3/10 tension intensity.", freq:"15 reps per session, 5–7x separate times a day.", links:[{text:"Watch Video",url:"https://www.youtube.com/watch?v=9jvg84xmvww"}] },
+  { name:"Pectorals & Infraspinatus Release", session:2, category:"Release, Nerve, & Shoulder Strength", target:"Soft tissue mobilization.", params:"Rest a lacrosse/tennis ball against a wall to roll out the chest and back of the shoulder blade.", freq:"Spend 2 full minutes on each distinct area.", links:[{text:"Watch Video",url:"https://www.youtube.com/watch?v=RmGgYuMWf1A"}] },
+  { name:"Band Resisted Shoulder IR", session:2, category:"Release, Nerve, & Shoulder Strength", target:"Rotator cuff strengthening.", params:"Perform inward shoulder rotation against a light resistance band immediately after ball release.", freq:"30 controlled repetitions.", links:[{text:"Watch Video",url:"https://www.youtube.com/watch?v=HJIZP6hoMZU"}] },
+  { name:"4-Way Shoulder Isometric", session:2, category:"Release, Nerve, & Shoulder Strength", target:"Balanced shoulder stability.", params:"Push against a stable wall in 4 directions (forward, backward, inward, outward) without moving the joint.", freq:"10-second hold, 5–6 reps per direction.", links:[{text:"Watch Video",url:"https://www.youtube.com/watch?v=gFGmNiczjKc"}] },
+  { name:"Shoulder Abduction Isometric", session:2, category:"Release, Nerve, & Shoulder Strength", target:"Lateral shoulder stability.", params:"Press outward against a wall away from your midline with a static hold.", freq:"10-second hold, repeat 5–6 times.", links:[{text:"Watch Short",url:"https://www.youtube.com/shorts/TNoS1IesgEg"}] },
+
+  // Session 2: Foot, Wrist, & Coordination
+  { name:"Opposite Motion: Up / Down", session:2, category:"Foot, Wrist, & Coordination", target:"Distal timing coordination.", params:"Seated. As the front of the left foot lifts, the left hand lowers, and vice versa. Swap sides.", freq:"10 repetitions per side.", links:[] },
+  { name:"Opposite Motion: In / Out", session:2, category:"Foot, Wrist, & Coordination", target:"Distal timing coordination.", params:"Seated. Move the left foot outward while moving the left hand inward, then reverse. Swap sides.", freq:"10 repetitions per side.", links:[] },
+  { name:"Opposite Box Pattern", session:2, category:"Foot, Wrist, & Coordination", target:"Advanced coordination.", params:"Move hand/wrist clockwise in a box while moving foot/ankle counterclockwise in a box.", freq:"5 repetitions each direction.", links:[] },
+  { name:"Opposite Circles", session:2, category:"Foot, Wrist, & Coordination", target:"Advanced coordination.", params:"Move hand/wrist clockwise in a smooth circle while foot/ankle moves counterclockwise.", freq:"5 repetitions each direction.", links:[] },
+  { name:"Hand/Foot Sequential Tapping", session:2, category:"Foot, Wrist, & Coordination", target:"Spatial rhythmic tracking.", params:"Tap in a box sequence: L hand → R hand → R foot → L foot. Reverse directions. Advanced: Try unequal taps (L hand x1, R hand x2, R foot x3, L foot x1).", freq:"Complete the box pattern, then reverse.", links:[] },
+  { name:"Toe Flexion Waves", session:2, category:"Foot, Wrist, & Coordination", target:"Neurological foot control.", params:"Straight leg out. Wave toes/ankles systematically through extension, flexion, and tight curling. Arch cramping is normal!", freq:"As prescribed by PT", links:[{text:"Watch Video",url:"https://www.youtube.com/watch?v=oZu87A1JZMU"}] },
+  { name:"Ball of Foot Circles", session:2, category:"Foot, Wrist, & Coordination", target:"Mid-foot bone mobility.", params:"Seated or standing. Hover heel slightly. Use lower leg (tibia) rotation to roll weight across toe bases smoothly.", freq:"As prescribed by PT", links:[{text:"Watch Video",url:"https://www.youtube.com/watch?v=9QVy45YQz98"}] },
+  { name:"Wrist Glides and Circles", session:2, category:"Foot, Wrist, & Coordination", target:"Joint feedback and control.", params:"Elbow tucked, fingers relaxed. Move strictly from wrist up/down, side-to-side, or in smooth circles.", freq:"3–5 smooth reps, 3–5x per day.", links:[{text:"Watch Video",url:"https://www.youtube.com/watch?v=-80eF11QWw8"}] },
+  { name:"Anterior / Posterior Pelvic Tilts", session:2, category:"Foot, Wrist, & Coordination", target:"SI joint isolation.", params:"Stand tall. Imagine pelvis is a water bowl; tilt to dump water out the back, then out the front. Keep knees completely still.", freq:"As prescribed by PT", links:[{text:"Watch Video",url:"https://www.youtube.com/watch?v=cPgBswGgFIw"}] },
+  { name:"Lateral Pelvic Tilts", session:2, category:"Foot, Wrist, & Coordination", target:"SI joint isolation.", params:"Stand tall. Alternately hike one hip up toward your ribcage, lower to neutral, then swap sides. Do not use knees or lean your upper torso.", freq:"As prescribed by PT", links:[{text:"Watch Video",url:"https://www.youtube.com/watch?v=-jlG1K2SncY"}] },
+];
+
+const categoryIcons = {
+  "Neuro, Cranial Nerve, & Face": "🧠",
+  "Vision, Vestibular, & Gaze Control": "👁️",
+  "Visual Fatigue, Ergonomics, & Software": "🖥️",
+  "Cognitive Coordination & Dual-Tasking": "🎯",
+  "Spine, Neck Motor Control, & Extremity Mobility": "🧣",
+  "Educational Videos & Concussion Management": "🎓",
+  "Vestibular & Face": "🧠",
+  "Neck & Upper Body Mobility": "🧣",
+  "Release, Nerve, & Shoulder Strength": "⚡",
+  "Foot, Wrist, & Coordination": "🖐️",
+};
+
+let activeSession = null;
+let activeExercise = null;
+
+function init() {
+  renderSessionTags();
+  renderExerciseTags();
+  render();
+}
+
+function renderSessionTags() {
+  const container = document.getElementById('sessionTags');
+  container.innerHTML = ['Session 1','Session 2'].map((s, i) => {
+    const num = i + 1;
+    const cls = activeSession === num ? 'tag session-tag s'+num+' active' : 'tag session-tag s'+num;
+    return `<span class="${cls}" onclick="toggleSession(${num})">${s}</span>`;
+  }).join('');
+  document.getElementById('clearSession').classList.toggle('visible', activeSession !== null);
+}
+
+function renderExerciseTags() {
+  const container = document.getElementById('exerciseTags');
+  let filtered = exercises;
+  if (activeSession) filtered = filtered.filter(e => e.session === activeSession);
+  const names = [...new Set(filtered.map(e => e.name))];
+  container.innerHTML = names.map(n => {
+    const cls = activeExercise === n ? 'tag active' : 'tag';
+    return `<span class="${cls}" onclick="toggleExercise('${n.replace(/'/g,"\\'")}')">${n}</span>`;
+  }).join('');
+  document.getElementById('clearExercise').classList.toggle('visible', activeExercise !== null);
+}
+
+function toggleSession(num) {
+  activeSession = activeSession === num ? null : num;
+  if (activeExercise) {
+    const match = exercises.find(e => e.name === activeExercise && (activeSession ? e.session === activeSession : true));
+    if (!match) activeExercise = null;
+  }
+  renderSessionTags();
+  renderExerciseTags();
+  render();
+}
+
+function toggleExercise(name) {
+  activeExercise = activeExercise === name ? null : name;
+  renderExerciseTags();
+  render();
+}
+
+function clearSessionFilter() { activeSession = null; renderSessionTags(); renderExerciseTags(); render(); }
+function clearExerciseFilter() { activeExercise = null; renderExerciseTags(); render(); }
+
+function render() {
+  let filtered = exercises;
+  if (activeSession) filtered = filtered.filter(e => e.session === activeSession);
+  if (activeExercise) filtered = filtered.filter(e => e.name === activeExercise);
+
+  document.getElementById('counter').textContent = `Showing ${filtered.length} of ${exercises.length} exercises`;
+
+  if (filtered.length === 0) {
+    document.getElementById('main').innerHTML = '<div class="no-results">No exercises match the current filters.</div>';
+    return;
+  }
+
+  const grouped = {};
+  const categoryOrder = [];
+  filtered.forEach(e => {
+    const key = e.category;
+    if (!grouped[key]) { grouped[key] = []; categoryOrder.push(key); }
+    grouped[key].push(e);
+  });
+
+  let html = '';
+  categoryOrder.forEach(cat => {
+    const icon = categoryIcons[cat] || '';
+    html += `<div class="category-section"><div class="category-header">${icon} ${cat}</div>`;
+    grouped[cat].forEach(e => {
+      const highlight = activeExercise === e.name ? ' highlight' : '';
+      const linksHtml = e.links.map(l => `<a href="${l.url}" target="_blank" rel="noopener">${l.text}</a>`).join('');
+      html += `
+        <div class="card${highlight}" data-name="${e.name}">
+          <div class="card-top">
+            <span class="card-name">${e.name}</span>
+            <span class="session-badge s${e.session}">Session ${e.session}</span>
+          </div>
+          <div class="card-target">${e.target}</div>
+          <div class="card-details">
+            <div class="detail-block"><label>Parameters & Cues</label><p>${e.params}</p></div>
+            <div class="detail-block"><label>Frequency / Reps</label><p>${e.freq}</p></div>
+          </div>
+          ${linksHtml ? `<div class="card-links">${linksHtml}</div>` : ''}
+        </div>`;
+    });
+    html += '</div>';
+  });
+
+  document.getElementById('main').innerHTML = html;
+}
+
+init();
+</script>
+</body>
+</html>
