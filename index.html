@@ -111,7 +111,7 @@
   .tag.session-tag.s1.active { background: var(--session1); border-color: var(--session1); }
   .tag.session-tag.s2.active { background: var(--session2); border-color: var(--session2); }
 
-  .exercise-name-tags {
+  .category-tags {
     max-height: 120px;
     overflow-y: auto;
   }
@@ -274,8 +274,8 @@
     <div class="tags" id="sessionTags"></div>
   </div>
   <div class="filter-group">
-    <div class="filter-label">Exercise / Resource Name <button class="clear-filters" id="clearExercise" onclick="clearExerciseFilter()">clear</button></div>
-    <div class="tags exercise-name-tags" id="exerciseTags"></div>
+    <div class="filter-label">Category <button class="clear-filters" id="clearCategory" onclick="clearCategoryFilter()">clear</button></div>
+    <div class="tags category-tags" id="categoryTags"></div>
   </div>
 </div>
 
@@ -377,11 +377,11 @@ const categoryIcons = {
 };
 
 let activeSession = null;
-let activeExercise = null;
+let activeCategory = null;
 
 function init() {
   renderSessionTags();
-  renderExerciseTags();
+  renderCategoryTags();
   render();
 }
 
@@ -395,42 +395,43 @@ function renderSessionTags() {
   document.getElementById('clearSession').classList.toggle('visible', activeSession !== null);
 }
 
-function renderExerciseTags() {
-  const container = document.getElementById('exerciseTags');
+function renderCategoryTags() {
+  const container = document.getElementById('categoryTags');
   let filtered = exercises;
   if (activeSession) filtered = filtered.filter(e => e.session === activeSession);
-  const names = [...new Set(filtered.map(e => e.name))];
-  container.innerHTML = names.map(n => {
-    const cls = activeExercise === n ? 'tag active' : 'tag';
-    return `<span class="${cls}" onclick="toggleExercise('${n.replace(/'/g,"\\'")}')">${n}</span>`;
+  const cats = [...new Set(filtered.map(e => e.category))];
+  container.innerHTML = cats.map(c => {
+    const icon = categoryIcons[c] || '';
+    const cls = activeCategory === c ? 'tag active' : 'tag';
+    return `<span class="${cls}" onclick="toggleCategory('${c.replace(/'/g,"\\'")}')">${icon} ${c}</span>`;
   }).join('');
-  document.getElementById('clearExercise').classList.toggle('visible', activeExercise !== null);
+  document.getElementById('clearCategory').classList.toggle('visible', activeCategory !== null);
 }
 
 function toggleSession(num) {
   activeSession = activeSession === num ? null : num;
-  if (activeExercise) {
-    const match = exercises.find(e => e.name === activeExercise && (activeSession ? e.session === activeSession : true));
-    if (!match) activeExercise = null;
+  if (activeCategory) {
+    const match = exercises.find(e => e.category === activeCategory && (activeSession ? e.session === activeSession : true));
+    if (!match) activeCategory = null;
   }
   renderSessionTags();
-  renderExerciseTags();
+  renderCategoryTags();
   render();
 }
 
-function toggleExercise(name) {
-  activeExercise = activeExercise === name ? null : name;
-  renderExerciseTags();
+function toggleCategory(cat) {
+  activeCategory = activeCategory === cat ? null : cat;
+  renderCategoryTags();
   render();
 }
 
-function clearSessionFilter() { activeSession = null; renderSessionTags(); renderExerciseTags(); render(); }
-function clearExerciseFilter() { activeExercise = null; renderExerciseTags(); render(); }
+function clearSessionFilter() { activeSession = null; renderSessionTags(); renderCategoryTags(); render(); }
+function clearCategoryFilter() { activeCategory = null; renderCategoryTags(); render(); }
 
 function render() {
   let filtered = exercises;
   if (activeSession) filtered = filtered.filter(e => e.session === activeSession);
-  if (activeExercise) filtered = filtered.filter(e => e.name === activeExercise);
+  if (activeCategory) filtered = filtered.filter(e => e.category === activeCategory);
 
   document.getElementById('counter').textContent = `Showing ${filtered.length} of ${exercises.length} exercises`;
 
