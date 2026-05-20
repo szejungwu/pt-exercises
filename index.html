@@ -453,7 +453,7 @@ function render() {
     const icon = categoryIcons[cat] || '';
     html += `<div class="category-section"><div class="category-header">${icon} ${cat}</div>`;
     grouped[cat].forEach(e => {
-      const highlight = activeExercise === e.name ? ' highlight' : '';
+      const highlight = activeCategory === e.category ? ' highlight' : '';
       const linksHtml = e.links.map(l => `<a href="${l.url}" target="_blank" rel="noopener">${l.text}</a>`).join('');
       html += `
         <div class="card${highlight}" data-name="${e.name}">
